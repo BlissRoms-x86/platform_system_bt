@@ -274,6 +274,30 @@ bt_status_t btif_storage_load_bonded_hid_info(void);
 *******************************************************************************/
 bt_status_t btif_storage_remove_hid_info(bt_bdaddr_t *remote_bd_addr);
 
+/*******************************************************************************
+**
+** Function         btif_storage_is_retricted_device
+**
+** Description      BTIF storage API - checks if this device is a restricted device
+**
+** Returns          TRUE  if the device is labled as restricted
+**                  FALSE otherwise
+**
+*******************************************************************************/
+BOOLEAN btif_storage_is_restricted_device(const bt_bdaddr_t *remote_bd_addr);
+
+/*******************************************************************************
+**
+** Function         btif_storage_is_wiimote
+**
+** Description      BTIF storage API - checks if this device is a wiimote
+**
+** Returns          TRUE   if the device is found in wiimote device list
+**                  FALSE otherwise
+**
+*******************************************************************************/
+BOOLEAN btif_storage_is_wiimote(bt_bdaddr_t *remote_bd_addr, bt_bdname_t *remote_bd_name);
+
 #if (BLE_INCLUDED == TRUE)
 bt_status_t btif_storage_add_ble_bonding_key( bt_bdaddr_t *remote_bd_addr,
                                               char *key,
