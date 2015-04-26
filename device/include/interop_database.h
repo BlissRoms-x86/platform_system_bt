@@ -91,11 +91,27 @@ static const interop_addr_entry_t interop_addr_database[] = {
   {{{0xe0, 0x75, 0x0a,      0,0,0}}, 3, INTEROP_DISABLE_AUTO_PAIRING},
 
   // Unknown keyboard (carried over from auto_pair_devlist.conf)
-  {{{0x00, 0x0F, 0xF6,      0,0,0}}, 3, INTEROP_KEYBOARD_REQUIRES_FIXED_PIN}
+  {{{0x00, 0x0F, 0xF6,      0,0,0}}, 3, INTEROP_KEYBOARD_REQUIRES_FIXED_PIN},
+
+  // Apple Magic Mouse
+  {{{0x04, 0x0C, 0xCE,       0,0,0}}, 3, INTEROP_DISABLE_SDP_AFTER_PAIRING},
+  // Bluetooth Laser Travel Mouse
+  {{{0x00, 0x07, 0x61,       0,0,0}}, 3, INTEROP_DISABLE_SDP_AFTER_PAIRING},
+  // Microsoft Bluetooth Notebook Mouse 5000
+  {{{0x00, 0x1d, 0xd8,       0,0,0}}, 3, INTEROP_DISABLE_SDP_AFTER_PAIRING},
+  // Logitech MX Revolution Mouse
+  {{{0x00, 0x1f, 0x20,       0,0,0}}, 3, INTEROP_DISABLE_SDP_AFTER_PAIRING},
+  // Rapoo 6080 mouse
+  {{{0x6c, 0x5d, 0x63,       0,0,0}}, 3, INTEROP_DISABLE_SDP_AFTER_PAIRING},
+  // Microsoft Sculpt Touch Mouse
+  {{{0x28, 0x18, 0x78,       0,0,0}}, 3, INTEROP_DISABLE_SDP_AFTER_PAIRING},
+
+  // Targus BT Laser Notebook Mouse
+  {{{0x00, 0x12, 0xA1,       0,0,0}}, 3, INTEROP_DISABLE_AUTH_FOR_HID_POINTING},
 };
 
 typedef struct {
-  char name[20];
+  char name[40];
   size_t length;
   interop_feature_t feature;
 } interop_name_entry_t;
@@ -105,6 +121,32 @@ static const interop_name_entry_t interop_name_database[] = {
   {"BMW",     3, INTEROP_DISABLE_AUTO_PAIRING},
   {"Audi",    4, INTEROP_DISABLE_AUTO_PAIRING},
   {"Parrot",  6, INTEROP_DISABLE_AUTO_PAIRING},
-  {"Car",     3, INTEROP_DISABLE_AUTO_PAIRING}
+  {"Car",     3, INTEROP_DISABLE_AUTO_PAIRING},
+
+  // Nissan Quest rejects pairing after "0000"
+  {"NISSAN",  6, INTEROP_DISABLE_AUTO_PAIRING},
+
+  // Subaru car kits ("CAR M_MEDIA")
+  {"CAR",     3, INTEROP_DISABLE_AUTO_PAIRING},
+
+  // HID SDP Blacklist
+  {"Apple Magic Mouse", 17, INTEROP_DISABLE_SDP_AFTER_PAIRING},
+  {"Bluetooth Laser Travel Mouse", 28, INTEROP_DISABLE_SDP_AFTER_PAIRING},
+  {"Microsoft Bluetooth Notebook Mouse 5000", 39, INTEROP_DISABLE_SDP_AFTER_PAIRING},
+  {"Logitech MX Revolution Mouse", 28, INTEROP_DISABLE_SDP_AFTER_PAIRING},
+  {"Microsoft Sculpt Touch Mouse", 28, INTEROP_DISABLE_SDP_AFTER_PAIRING},
+
+  // HID Authentication Blacklist
+  {"Targus BT Laser Notebook Mouse", 30, INTEROP_DISABLE_AUTH_FOR_HID_POINTING},
+};
+
+typedef struct {
+  uint16_t manufacturer;
+  interop_feature_t feature;
+} interop_manufacturer_t;
+
+static const interop_manufacturer_t interop_manufacturer_database[] = {
+  // Apple Devices
+  {76, INTEROP_DISABLE_SDP_AFTER_PAIRING},
 };
 
