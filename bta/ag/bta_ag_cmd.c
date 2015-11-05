@@ -1223,6 +1223,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
     tBTA_AG_SCB     *ag_scb;
     UINT32          i, ind_id;
     UINT32          bia_masked_out;
+    tBTA_AG_FEAT  features;
 #if (BTM_WBS_INCLUDED == TRUE )
     tBTA_AG_PEER_CODEC  codec_type, codec_sent;
 #endif
@@ -1482,17 +1483,13 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
         case BTA_AG_HF_CMD_BRSF:
         {
             /* store peer features */
-            p_scb->peer_features = (uint16_t) int_arg;
-
-            tBTA_AG_FEAT features = p_scb->features;
+            p_scb->peer_features = (UINT16) int_arg;
+            features = p_scb->features & BTA_AG_BSRF_FEAT_SPEC;
+            /* if the devices does not support HFP 1.7, report DUT's HFP version as 1.6 */
             if (p_scb->peer_version < HFP_VERSION_1_7)
             {
-                features &= HFP_1_6_FEAT_MASK;
+                features = features & ~(BTA_AG_FEAT_HFIND | BTA_AG_FEAT_S4);
             }
-
-            APPL_TRACE_DEBUG("%s BRSF HF: 0x%x, phone: 0x%x", __func__,
-                p_scb->peer_features, features);
-
             /* send BRSF, send OK */
             bta_ag_send_result(p_scb, BTA_AG_RES_BRSF, NULL, (int16_t) features);
             bta_ag_send_ok(p_scb);
