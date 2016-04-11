@@ -86,10 +86,12 @@ static const interop_addr_entry_t interop_addr_database[] = {
 
   // VW Car Kit - not enough granularity with volume
   {{{0x00, 0x26, 0x7e,      0,0,0}}, 3, INTEROP_DISABLE_ABSOLUTE_VOLUME},
-  {{{0x90, 0x03, 0xb7,      0,0,0}}, 3, INTEROP_DISABLE_ABSOLUTE_VOLUME},
+
+  // Subaru car kits (ALPS) - auto-pairing fails and rejects next pairing
+  {{{0xe0, 0x75, 0x0a,      0,0,0}}, 3, INTEROP_DISABLE_AUTO_PAIRING},
 
   // Unknown keyboard (carried over from auto_pair_devlist.conf)
-  {{{0x00, 0x0F, 0xF6,      0,0,0}}, 3, INTEROP_KEYBOARD_REQUIRES_FIXED_PIN},
+  {{{0x00, 0x0F, 0xF6,      0,0,0}}, 3, INTEROP_KEYBOARD_REQUIRES_FIXED_PIN}
 };
 
 typedef struct {
@@ -100,15 +102,9 @@ typedef struct {
 
 static const interop_name_entry_t interop_name_database[] = {
   // Carried over from auto_pair_devlist.conf migration
-  {"Audi",    4, INTEROP_DISABLE_AUTO_PAIRING},
   {"BMW",     3, INTEROP_DISABLE_AUTO_PAIRING},
+  {"Audi",    4, INTEROP_DISABLE_AUTO_PAIRING},
   {"Parrot",  6, INTEROP_DISABLE_AUTO_PAIRING},
-  {"Car",     3, INTEROP_DISABLE_AUTO_PAIRING},
-
-  // Nissan Quest rejects pairing after "0000"
-  {"NISSAN",  6, INTEROP_DISABLE_AUTO_PAIRING},
-
-  // Subaru car kits ("CAR M_MEDIA")
-  {"CAR",     3, INTEROP_DISABLE_AUTO_PAIRING},
+  {"Car",     3, INTEROP_DISABLE_AUTO_PAIRING}
 };
 

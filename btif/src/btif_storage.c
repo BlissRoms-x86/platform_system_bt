@@ -1460,20 +1460,3 @@ bt_status_t btif_storage_read_hl_apps_cb(char *value, int value_size)
     return bt_status;
 }
 
-/*******************************************************************************
-**
-** Function         btif_storage_is_restricted_device
-**
-** Description      BTIF storage API - checks if this device is a restricted device
-**
-** Returns          TRUE  if the device is labeled as restricted
-**                  FALSE otherwise
-**
-*******************************************************************************/
-BOOLEAN btif_storage_is_restricted_device(const bt_bdaddr_t *remote_bd_addr)
-{
-    bdstr_t bdstr;
-    bdaddr_to_string(remote_bd_addr, bdstr, sizeof(bdstr));
-
-    return btif_config_exist(bdstr, "Restricted");
-}
