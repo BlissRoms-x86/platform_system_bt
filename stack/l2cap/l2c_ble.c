@@ -379,6 +379,37 @@ void l2cble_scanner_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE type,
 #if BLE_PRIVACY_SPT == TRUE
     btm_ble_disable_resolving_list(BTM_BLE_RL_INIT, TRUE);
 #endif
+
+    /* If there are any preferred connection parameters, set them now */
+    if ( (p_dev_rec->conn_params.min_conn_int     >= BTM_BLE_CONN_INT_MIN ) &&
+         (p_dev_rec->conn_params.min_conn_int     <= BTM_BLE_CONN_INT_MAX ) &&
+         (p_dev_rec->conn_params.max_conn_int     >= BTM_BLE_CONN_INT_MIN ) &&
+         (p_dev_rec->conn_params.max_conn_int     <= BTM_BLE_CONN_INT_MAX ) &&
+         (p_dev_rec->conn_params.slave_latency    <= BTM_BLE_CONN_LATENCY_MAX ) &&
+         (p_dev_rec->conn_params.supervision_tout >= BTM_BLE_CONN_SUP_TOUT_MIN) &&
+         (p_dev_rec->conn_params.supervision_tout <= BTM_BLE_CONN_SUP_TOUT_MAX) &&
+         ((conn_interval < p_dev_rec->conn_params.min_conn_int &&
+          p_dev_rec->conn_params.min_conn_int != BTM_BLE_CONN_PARAM_UNDEF) ||
+          (conn_interval > p_dev_rec->conn_params.max_conn_int) ||
+          (conn_latency > p_dev_rec->conn_params.slave_latency) ||
+          (conn_timeout > p_dev_rec->conn_params.supervision_tout)))
+    {
+        L2CAP_TRACE_ERROR ("upd_ll_conn_params: HANDLE=%d min_conn_int=%d max_conn_int=%d slave_latency=%d supervision_tout=%d",
+                            handle, p_dev_rec->conn_params.min_conn_int, p_dev_rec->conn_params.max_conn_int,
+                            p_dev_rec->conn_params.slave_latency, p_dev_rec->conn_params.supervision_tout);
+
+        p_lcb->min_interval = p_dev_rec->conn_params.min_conn_int;
+        p_lcb->max_interval = p_dev_rec->conn_params.max_conn_int;
+        p_lcb->timeout      = p_dev_rec->conn_params.supervision_tout;
+        p_lcb->latency      = p_dev_rec->conn_params.slave_latency;
+
+        btsnd_hcic_ble_upd_ll_conn_params (handle,
+                                           p_dev_rec->conn_params.min_conn_int,
+                                           p_dev_rec->conn_params.max_conn_int,
+                                           p_dev_rec->conn_params.slave_latency,
+                                           p_dev_rec->conn_params.supervision_tout,
+                                           0, 0);
+    }
 }
 
 
