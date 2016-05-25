@@ -183,6 +183,7 @@ static void update_command_response_timer(void);
 
 static bool create_hw_reset_evt_packet(packet_receive_data_t *incoming);
 
+void ssr_cleanup (int reason);
 
 // Module lifecycle functions
 
@@ -570,8 +571,15 @@ static void command_timed_out(UNUSED_ATTR void *context) {
     LOG_EVENT_INT(BT_HCI_TIMEOUT_TAG_NUM, wait_entry->opcode);
   }
 
-  LOG_ERROR(LOG_TAG, "%s restarting the bluetooth process.", __func__);
-  usleep(10000);
+  LOG_ERROR("%s restarting the bluetooth process.", __func__);
+  ssr_cleanup(0x22);//SSR reasno 0x22 = CMD TO
+  usleep(20000);
+  //Reset SOC status to trigger hciattach service
+  if (property_set("bluetooth.status", "off") < 0) {
+     LOG_ERROR(LOG_TAG, "hci_cmd_timeout: Error resetting SOC status\n ");
+  } else {
+     LOG_ERROR(LOG_TAG, "hci_cmd_timeout: SOC Status is reset\n ");
+  }
   kill(getpid(), SIGKILL);
 }
 
@@ -855,6 +863,18 @@ intercepted:
   return true;
 }
 
+/** SSR cleanup is used in HW reset cases
+** which would close all the client channels
+** and turns off the chip*/
+void ssr_cleanup (int reason) {
+   LOG_INFO("%s", __func__);
+   if (vendor != NULL) {
+       vendor->ssr_cleanup(reason);
+   } else {
+       LOG_ERROR("%s: vendor is NULL", __func__);
+   }
+}
+
 // Callback for the fragmenter to dispatch up a completely reassembled packet
 static void dispatch_reassembled(BT_HDR *packet) {
   // Events should already have been dispatched before this point
@@ -932,6 +952,7 @@ static void init_layer_interface() {
     interface.transmit_command = transmit_command;
     interface.transmit_command_futured = transmit_command_futured;
     interface.transmit_downward = transmit_downward;
+    interface.ssr_cleanup = ssr_cleanup;
     interface_created = true;
   }
 }
