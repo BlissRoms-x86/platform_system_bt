@@ -2426,7 +2426,9 @@ static void handle_notification_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC_REG
 
     if (pmeta_msg->code == AVRC_RSP_INTERIM)
     {
-        btif_rc_supported_event_t *p_event;
+        /* Klockwork Fix for below issue 4442
+         * 'p_event' might be used uninitialized in this function.*/
+        btif_rc_supported_event_t *p_event = NULL;
         list_node_t *node;
 
         BTIF_TRACE_DEBUG("%s Interim response : 0x%2X ", __FUNCTION__, p_rsp->event_id);
@@ -2708,8 +2710,12 @@ static void handle_app_val_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC_LIST_APP
             p_app_settings->ext_attr_index = 0;
             list_player_app_setting_value_cmd (p_app_settings->ext_attrs[attr_index].attr_id);
         }
+        /* Klockwork fix for below line 4661
+         * Array 'attrs' of size 16 may use index value(s) 16..254*/
         else
         {
+            if (p_app_settings->num_attrs > AVRC_MAX_APP_ATTR_SIZE)
+                p_app_settings->num_attrs = AVRC_MAX_APP_ATTR_SIZE;
             for (xx = 0; xx < p_app_settings->num_attrs; xx++)
             {
                 attrs[xx] = p_app_settings->attrs[xx].attr_id;
@@ -2823,8 +2829,9 @@ static void handle_app_attr_txt_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC_GET
         for (xx = 0; xx < p_app_settings->ext_attr_index; xx++)
             osi_free_and_reset((void **)&p_app_settings->ext_attrs[xx].p_str);
         p_app_settings->ext_attr_index = 0;
-
-        for (xx = 0; xx < p_app_settings->num_attrs; xx++)
+        /* Klockwork Fix for below issue at line 4765
+         * Array 'attrs' of size 16 may use index value(s) 16..254 */
+        for (xx = 0; xx < p_app_settings->num_attrs && xx < AVRC_MAX_APP_ATTR_SIZE; xx++)
         {
             attrs[xx] = p_app_settings->attrs[xx].attr_id;
         }
@@ -2850,7 +2857,9 @@ static void handle_app_attr_txt_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC_GET
         }
     }
 
-    for (xx = 0; xx < p_app_settings->ext_attrs[0].num_val; xx++)
+    /* Klockwork Fix for below issue at line 4791
+     * Array 'vals' of size 16 may use index value(s) 16..254*/
+    for (xx = 0; xx < p_app_settings->ext_attrs[0].num_val && xx < AVRC_MAX_APP_ATTR_SIZE; xx++)
     {
         vals[xx] = p_app_settings->ext_attrs[0].ext_attr_val[xx].val;
     }
@@ -2904,7 +2913,9 @@ static void handle_app_attr_val_txt_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC
         }
         p_app_settings->ext_attr_index = 0;
 
-        for (xx = 0; xx < p_app_settings->num_attrs; xx++)
+        /* Klockwork Fix for below issue 4851
+         * Array 'attrss' of size 16 may use index value(s) 16..254*/
+        for (xx = 0; xx < p_app_settings->num_attrs && xx < AVRC_MAX_APP_ATTR_SIZE; xx++)
         {
             attrs[xx] = p_app_settings->attrs[xx].attr_id;
         }
@@ -2936,7 +2947,9 @@ static void handle_app_attr_val_txt_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC
     if (p_app_settings->ext_val_index < p_app_settings->num_ext_attrs)
     {
         attr_index = p_app_settings->ext_val_index;
-        for (xx = 0; xx < p_app_settings->ext_attrs[attr_index].num_val; xx++)
+        /* Klockwork Fix for below issue 4883
+         * Array 'vals' of size 16 may use index value(s) 16..254*/
+        for (xx = 0; xx < p_app_settings->ext_attrs[attr_index].num_val && xx < AVRC_MAX_APP_ATTR_SIZE; xx++)
         {
             vals[xx] = p_app_settings->ext_attrs[attr_index].ext_attr_val[xx].val;
         }
