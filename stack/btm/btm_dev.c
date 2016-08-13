@@ -491,7 +491,28 @@ void btm_consolidate_dev(tBTM_SEC_DEV_REC *p_target_rec)
     {
         if (p_target_rec!= p_dev_rec && p_dev_rec->sec_flags & BTM_SEC_IN_USE)
         {
-            if (!memcmp (p_dev_rec->bd_addr, p_target_rec->bd_addr, BD_ADDR_LEN))
+            memcpy(p_target_rec, p_dev_rec, sizeof(tBTM_SEC_DEV_REC));
+            p_target_rec->ble = temp_rec.ble;
+            p_target_rec->ble_hci_handle = temp_rec.ble_hci_handle;
+            p_target_rec->enc_key_size = temp_rec.enc_key_size;
+            p_target_rec->conn_params = temp_rec.conn_params;
+            p_target_rec->device_type |= temp_rec.device_type;
+            p_target_rec->sec_flags |= temp_rec.sec_flags;
+
+            p_target_rec->new_encryption_key_is_p256 = temp_rec.new_encryption_key_is_p256;
+            p_target_rec->no_smp_on_br = temp_rec.no_smp_on_br;
+            p_target_rec->bond_type = temp_rec.bond_type;
+
+            /* remove the combined record */
+            list_remove(btm_cb.sec_dev_rec, p_dev_rec);
+
+            p_dev_rec->bond_type = BOND_TYPE_UNKNOWN;
+        }
+
+        /* an RPA device entry is a duplicate of the target record */
+        if (btm_ble_addr_resolvable(p_dev_rec->bd_addr, p_target_rec))
+        {
+            if (memcmp(p_target_rec->ble.pseudo_addr, p_dev_rec->bd_addr, BD_ADDR_LEN) == 0)
             {
                 memcpy(p_target_rec, p_dev_rec, sizeof(tBTM_SEC_DEV_REC));
                 p_target_rec->ble = temp_rec.ble;
@@ -507,19 +528,6 @@ void btm_consolidate_dev(tBTM_SEC_DEV_REC *p_target_rec)
                 /* mark the combined record as unused */
                 p_dev_rec->sec_flags &= ~BTM_SEC_IN_USE;
                 p_dev_rec->bond_type = BOND_TYPE_UNKNOWN;
-                break;
-            }
-
-            /* an RPA device entry is a duplicate of the target record */
-            if (btm_ble_addr_resolvable(p_dev_rec->bd_addr, p_target_rec))
-            {
-                if (memcmp(p_target_rec->ble.pseudo_addr, p_dev_rec->bd_addr, BD_ADDR_LEN) == 0)
-                {
-                    p_target_rec->ble.ble_addr_type = p_dev_rec->ble.ble_addr_type;
-                    p_target_rec->device_type |= p_dev_rec->device_type;
-                    p_dev_rec->sec_flags &= ~BTM_SEC_IN_USE;
-                    p_dev_rec->bond_type = BOND_TYPE_UNKNOWN;
-                }
                 break;
             }
         }
