@@ -344,6 +344,10 @@ tBTM_SEC_DEV_REC *btm_sec_alloc_dev (BD_ADDR bd_addr)
 *******************************************************************************/
 void btm_sec_free_dev (tBTM_SEC_DEV_REC *p_dev_rec)
 {
+    p_dev_rec->bond_type = BOND_TYPE_UNKNOWN;
+    p_dev_rec->sec_flags = 0;
+    p_dev_rec->sm4 = BTM_SM4_UNKNOWN;
+
 #if BLE_INCLUDED == TRUE
     /* Clear out any saved BLE keys */
     btm_sec_clear_ble_keys (p_dev_rec);
