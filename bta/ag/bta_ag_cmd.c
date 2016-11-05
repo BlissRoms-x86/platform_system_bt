@@ -1233,6 +1233,19 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
             break;
 
         case BTA_AG_HF_CMD_BRSF:
+        {
+            /* store peer features */
+            p_scb->peer_features = (uint16_t) int_arg;
+
+            tBTA_AG_FEAT features = p_scb->features;
+            if (p_scb->peer_version < HFP_VERSION_1_7)
+            {
+                features &= HFP_1_6_FEAT_MASK;
+            }
+
+            APPL_TRACE_DEBUG("%s BRSF HF: 0x%x, phone: 0x%x", __func__,
+                p_scb->peer_features, features);
+
             /* store peer features. */
             p_scb->peer_features = (UINT16) int_arg;
             features = p_scb->features & BTA_AG_BSRF_FEAT_SPEC;
@@ -1260,10 +1273,12 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
                 }
              }
             /* send BRSF, send OK */
+            bta_ag_send_result(p_scb, BTA_AG_RES_BRSF, NULL, (int16_t) features);
             bta_ag_send_result(p_scb, BTA_AG_RES_BRSF, NULL,
                                (INT16) features);
             bta_ag_send_ok(p_scb);
             break;
+        }
 
         case BTA_AG_HF_CMD_NREC:
             /* if feature send OK, else don't call callback, send ERROR */
