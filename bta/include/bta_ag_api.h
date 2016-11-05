@@ -31,6 +31,16 @@
 **  Constants and data types
 *****************************************************************************/
 
+#define HSP_VERSION_1_0         0x0100
+#define HSP_VERSION_1_2         0x0102
+
+/* Note, if you change the default version here, please also change the one in
+ * bta_hs_api.h, they are meant to be the same.
+ */
+#ifndef BTA_HFP_VERSION
+#define BTA_HFP_VERSION         HFP_VERSION_1_7
+#endif
+
 /* AG feature masks */
 #define BTA_AG_FEAT_3WAY    0x00000001   /* Three-way calling */
 #define BTA_AG_FEAT_ECNR    0x00000002   /* Echo cancellation and/or noise reduction */
@@ -42,9 +52,13 @@
 #define BTA_AG_FEAT_ECC     0x00000080   /* Enhanced Call Control */
 #define BTA_AG_FEAT_EXTERR  0x00000100   /* Extended error codes */
 #define BTA_AG_FEAT_CODEC   0x00000200   /* Codec Negotiation */
-#define BTA_AG_FEAT_HFIND   0x00000400   /* HF indicators */
-#define BTA_AG_FEAT_S4      0x00000800   /* ESCO S4 link setting */
-#define BTA_AG_FEAT_VOIP    0x00001000   /* VoIP call */
+
+#define HFP_1_6_FEAT_MASK   0x000003FF   /* Valid feature bit mask for HFP 1.6 (and below) */
+
+/* HFP 1.7+ */
+#define BTA_AG_FEAT_HF_IND  0x00000400   /* HF Indicators */
+#define BTA_AG_FEAT_ESCO    0x00000800   /* eSCO S4 (and T2) setting supported */
+
 
 /* Proprietary features: using 31 ~ 16 bits */
 #define BTA_AG_FEAT_BTRH    0x00010000   /* CCAP incoming call hold */
@@ -56,7 +70,7 @@ typedef UINT32 tBTA_AG_FEAT;
 
 /* AG parse mode */
 #define BTA_AG_PARSE            0 /* Perform AT command parsing in AG */
-#define BTA_AG_PASS_THROUGH     1 /* Pass data directly to phone’s AT command interpreter */
+#define BTA_AG_PASS_THROUGH     1 /* Pass data directly to phoneï¿½s AT command interpreter */
 
 typedef UINT8 tBTA_AG_PARSE_MODE;
 

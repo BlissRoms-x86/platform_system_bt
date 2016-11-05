@@ -1233,37 +1233,24 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
             break;
 
         case BTA_AG_HF_CMD_BRSF:
-            /* store peer features. */
-            p_scb->peer_features = (UINT16) int_arg;
-            features = p_scb->features & BTA_AG_BSRF_FEAT_SPEC;
-            /* if the devices does not support HFP 1.7, report DUT's HFP version as 1.6 */
-            if ((p_scb->peer_version < HFP_VERSION_1_7) &&
-                 (!(p_scb->peer_features & BTA_AG_PEER_FEAT_HFIND)))
+        {
+            /* store peer features */
+            p_scb->peer_features = (uint16_t) int_arg;
+
+            tBTA_AG_FEAT features = p_scb->features;
+            if (p_scb->peer_version < HFP_VERSION_1_7)
             {
-                /* For PTS keep flags as is. */
-                if (property_get("bt.pts.certification", value, "false") &&
-                    strcmp(value, "true") != 0)
-                {
-                    features = features & ~(BTA_AG_FEAT_HFIND | BTA_AG_FEAT_S4);
-                }
-             }
-             else if ((p_scb->peer_version == HFP_VERSION_1_7) &&
-                      (!(p_scb->peer_features & BTA_AG_PEER_FEAT_HFIND)))
-             {
-                APPL_TRACE_WARNING("%s: Remote is hfp 1.7 but does not support HF indicators" \
-                                     "unset hf indicator bit from BRSF", __func__);
-                /* For PTS keep flags as is. */
-                if (property_get("bt.pts.certification", value, "false") &&
-                    strcmp(value, "true") != 0)
-                {
-                    features = features & ~(BTA_AG_FEAT_HFIND);
-                }
-             }
+                features &= HFP_1_6_FEAT_MASK;
+            }
+
+            APPL_TRACE_DEBUG("%s BRSF HF: 0x%x, phone: 0x%x", __func__,
+                p_scb->peer_features, features);
+
             /* send BRSF, send OK */
-            bta_ag_send_result(p_scb, BTA_AG_RES_BRSF, NULL,
-                               (INT16) features);
+            bta_ag_send_result(p_scb, BTA_AG_RES_BRSF, NULL, (int16_t) features);
             bta_ag_send_ok(p_scb);
             break;
+        }
 
         case BTA_AG_HF_CMD_NREC:
             /* if feature send OK, else don't call callback, send ERROR */
