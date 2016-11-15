@@ -626,6 +626,11 @@ static void command_timed_out(UNUSED_ATTR void *context) {
     waiting_command_t *wait_entry = list_front(commands_pending_response);
     pthread_mutex_unlock(&commands_pending_response_lock);
 
+    if (wait_entry->opcode == HCI_WRITE_SCAN_ENABLE) {
+      LOG_WARN(LOG_TAG, "%s hci layer timeout waiting for response to HCI_WRITE_SCAN_ENABLE, ignoring!", __func__);
+      return;
+    }
+
     // We shouldn't try to recover the stack from this command timeout.
     // If it's caused by a software bug, fix it. If it's a hardware bug, fix it.
     LOG_ERROR(LOG_TAG, "%s hci layer timeout waiting for response to a command. opcode: 0x%x", __func__, wait_entry->opcode);
