@@ -704,11 +704,6 @@
 #endif
 
 
-
-#ifndef HCI_RAW_CMD_INCLUDED
-#define HCI_RAW_CMD_INCLUDED    TRUE
-#endif
-
 /******************************************************************************
 **
 ** BLE
