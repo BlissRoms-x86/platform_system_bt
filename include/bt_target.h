@@ -200,15 +200,6 @@
 
 //------------------End added from bdroid_buildcfg.h---------------------
 
-/******************************************************************************
-**
-** Test Application interface
-**
-******************************************************************************/
-
-#ifndef TEST_APP_INTERFACE
-#define TEST_APP_INTERFACE           FALSE
-#endif
 
 /******************************************************************************
 **
@@ -1625,11 +1616,6 @@ The maximum number of payload octets that the local device can receive in a sing
 */
 #ifndef MCA_FCR_OPT_MPS_SIZE
 #define MCA_FCR_OPT_MPS_SIZE            1000
-#endif
-
-/* Enable this flag if require ,default value is false */
-#ifndef MCA_DELAY_DELETE_MDL_RSP
-#define MCA_DELAY_DELETE_MDL_RSP FALSE
 #endif
 
 /******************************************************************************
