@@ -470,10 +470,6 @@ static void fragmenter_transmit_finished(BT_HDR* packet,
 static void hci_timeout_abort(void) {
   LOG_ERROR(LOG_TAG, "%s restarting the Bluetooth process.", __func__);
   hci_close_firmware_log_file(hci_firmware_log_fd);
-
-  // We shouldn't try to recover the stack from this command timeout.
-  // If it's caused by a software bug, fix it. If it's a hardware bug, fix it.
-  abort();
 }
 
 static void hci_root_inflamed_abort() {
