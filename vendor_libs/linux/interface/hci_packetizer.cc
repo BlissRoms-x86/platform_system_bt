@@ -52,6 +52,7 @@ void HciPacketizer::CbHciPacket(uint8_t *data, size_t len) {
     packet_ready_cb_();
 }
 
+#if 0
 void HciPacketizer::OnDataReady(int fd, HciPacketType packet_type) {
   switch (state_) {
     case HCI_PREAMBLE: {
@@ -89,6 +90,7 @@ void HciPacketizer::OnDataReady(int fd, HciPacketType packet_type) {
     }
   }
 }
+#endif
 
 }  // namespace hci
 }  // namespace bluetooth
