@@ -940,9 +940,16 @@ void btm_process_remote_ext_features(tACL_CONN* p_acl_cb,
       BTM_TRACE_ERROR("%s: page=%d unexpected", __func__, page_idx);
       break;
     }
-    memcpy(p_dev_rec->feature_pages[page_idx],
-           p_acl_cb->peer_lmp_feature_pages[page_idx],
-           HCI_FEATURE_BYTES_PER_PAGE);
+    if ((page_idx == 1) && !HCI_SSP_HOST_SUPPORTED(
+        p_acl_cb->peer_lmp_feature_pages[page_idx])) {
+      BTM_TRACE_ERROR("Not received response for Page 1, retry");
+      btm_read_remote_ext_features(handle, page_idx);
+      return;
+    } else {
+      memcpy(p_dev_rec->feature_pages[page_idx],
+             p_acl_cb->peer_lmp_feature_pages[page_idx],
+             HCI_FEATURE_BYTES_PER_PAGE);
+    }
   }
 
   if (!(p_dev_rec->sec_flags & BTM_SEC_NAME_KNOWN) ||
