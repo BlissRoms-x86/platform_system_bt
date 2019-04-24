@@ -1257,7 +1257,7 @@ void bta_av_conn_chg(tBTA_AV_DATA* p_data) {
     /* if the AVRCP is no longer listening, create the listening channel */
     if (bta_av_cb.rc_acp_handle == BTA_AV_RC_HANDLE_NONE &&
         bta_av_cb.features & BTA_AV_FEAT_RCTG)
-      bta_av_rc_create(&bta_av_cb, AVCT_ACP, 0, BTA_AV_NUM_LINKS + 1);
+      bta_av_rc_create(&bta_av_cb, AVCT_ACP, 1, BTA_AV_NUM_LINKS + 1);
   }
 
   APPL_TRACE_DEBUG(
@@ -1444,7 +1444,7 @@ void bta_av_sig_chg(tBTA_AV_DATA* p_data) {
       p_lcb->conn_msk = 0; /* clear the connect mask */
       /* start listening when the signal channel is open */
       if (p_cb->features & BTA_AV_FEAT_RCTG) {
-        bta_av_rc_create(p_cb, AVCT_ACP, 0, p_lcb->lidx);
+        bta_av_rc_create(p_cb, AVCT_ACP, 1, p_lcb->lidx);
       }
       /* this entry is not used yet. */
       p_cb->conn_lcb |= mask; /* mark it as used */
@@ -2116,7 +2116,7 @@ void bta_av_rc_closed(tBTA_AV_DATA* p_data) {
   (*p_cb->p_cback)(BTA_AV_RC_CLOSE_EVT, &bta_av_data);
   if (bta_av_cb.rc_acp_handle == BTA_AV_RC_HANDLE_NONE
                   && bta_av_cb.features & BTA_AV_FEAT_RCTG)
-      bta_av_rc_create(&bta_av_cb, AVCT_ACP, 0, BTA_AV_NUM_LINKS + 1);
+      bta_av_rc_create(&bta_av_cb, AVCT_ACP, 1, BTA_AV_NUM_LINKS + 1);
 }
 
 /*******************************************************************************
