@@ -1,5 +1,5 @@
 //
-// Copyright 2017 The Android Open Source Project
+// Copyright 2016 The Android Open Source Project
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,22 +19,19 @@
 #include <android/hardware/bluetooth/1.0/IBluetoothHci.h>
 #include <hidl/HidlSupport.h>
 #include <hidl/HidlTransportSupport.h>
-#include <utils/Log.h>
+
 
 #include "bluetooth_hci.h"
 
 using ::android::hardware::configureRpcThreadpool;
 using ::android::hardware::bluetooth::V1_0::IBluetoothHci;
-using ::android::hardware::bluetooth::V1_0::btlinux::BluetoothHci;
+using ::android::hardware::bluetooth::V1_0::implementation::BluetoothHci;
 using ::android::hardware::joinRpcThreadpool;
 using ::android::sp;
 
 int main(int /* argc */, char** /* argv */) {
   sp<IBluetoothHci> bluetooth = new BluetoothHci;
   configureRpcThreadpool(1, true);
-  android::status_t status = bluetooth->registerAsService();
-  if (status == android::OK)
-    joinRpcThreadpool();
-  else
-    ALOGE("Could not register as a service!");
+  bluetooth->registerAsService();
+  joinRpcThreadpool();
 }

@@ -17,11 +17,12 @@
 #include "hci_packetizer.h"
 
 #define LOG_TAG "android.hardware.bluetooth.hci_packetizer"
-#include <android-base/logging.h>
-#include <utils/Log.h>
 
 #include <dlfcn.h>
+#include <errno.h>
 #include <fcntl.h>
+#include <unistd.h>
+#include <utils/Log.h>
 
 namespace {
 
@@ -45,21 +46,31 @@ namespace hardware {
 namespace bluetooth {
 namespace hci {
 
-const hidl_vec<uint8_t>& HciPacketizer::GetPacket() const { return packet_; }
+const hidl_vec<uint8_t>& HciPacketizer::GetPacket() const {
+  return packet_;
+}
 
 void HciPacketizer::CbHciPacket(uint8_t *data, size_t len) {
     packet_.setToExternal(data, len);
     packet_ready_cb_();
 }
 
-#if 0
 void HciPacketizer::OnDataReady(int fd, HciPacketType packet_type) {
   switch (state_) {
     case HCI_PREAMBLE: {
-      size_t bytes_read = TEMP_FAILURE_RETRY(
+      ssize_t bytes_read = TEMP_FAILURE_RETRY(
           read(fd, preamble_ + bytes_read_,
                preamble_size_for_type[packet_type] - bytes_read_));
-      CHECK(bytes_read > 0);
+      if (bytes_read == 0) {
+        // This is only expected if the UART got closed when shutting down.
+        ALOGE("%s: Unexpected EOF reading the header!", __func__);
+        sleep(5);  // Expect to be shut down within 5 seconds.
+        return;
+      }
+      if (bytes_read < 0) {
+        LOG_ALWAYS_FATAL("%s: Read header error: %s", __func__,
+                         strerror(errno));
+      }
       bytes_read_ += bytes_read;
       if (bytes_read_ == preamble_size_for_type[packet_type]) {
         size_t packet_length =
@@ -74,11 +85,20 @@ void HciPacketizer::OnDataReady(int fd, HciPacketType packet_type) {
     }
 
     case HCI_PAYLOAD: {
-      size_t bytes_read = TEMP_FAILURE_RETRY(read(
+      ssize_t bytes_read = TEMP_FAILURE_RETRY(read(
           fd,
           packet_.data() + preamble_size_for_type[packet_type] + bytes_read_,
           bytes_remaining_));
-      CHECK(bytes_read > 0);
+      if (bytes_read == 0) {
+        // This is only expected if the UART got closed when shutting down.
+        ALOGE("%s: Unexpected EOF reading the payload!", __func__);
+        sleep(5);  // Expect to be shut down within 5 seconds.
+        return;
+      }
+      if (bytes_read < 0) {
+        LOG_ALWAYS_FATAL("%s: Read payload error: %s", __func__,
+                         strerror(errno));
+      }
       bytes_remaining_ -= bytes_read;
       bytes_read_ += bytes_read;
       if (bytes_remaining_ == 0) {
@@ -90,7 +110,6 @@ void HciPacketizer::OnDataReady(int fd, HciPacketType packet_type) {
     }
   }
 }
-#endif
 
 }  // namespace hci
 }  // namespace bluetooth

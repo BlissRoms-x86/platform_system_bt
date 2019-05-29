@@ -21,15 +21,13 @@
 
 #include <hidl/MQDescriptor.h>
 
-#include "async_fd_watcher.h"
-#include "h4_protocol.h"
-#include "hci_internals.h"
+#include <functional>
 
 namespace android {
 namespace hardware {
 namespace bluetooth {
 namespace V1_0 {
-namespace btlinux {
+namespace implementation {
 
 using ::android::hardware::Return;
 using ::android::hardware::hidl_vec;
@@ -47,21 +45,6 @@ class BluetoothHci : public IBluetoothHci {
   Return<void> close() override;
 
  private:
-  async::AsyncFdWatcher fd_watcher_;
-  hci::H4Protocol* hci_handle_;
-  int bt_soc_fd_;
-  char *rfkill_state_;
-
-  const uint8_t HCI_DATA_TYPE_COMMAND = 1;
-  const uint8_t HCI_DATA_TYPE_ACL = 2;
-  const uint8_t HCI_DATA_TYPE_SCO = 3;
-
-  int waitHciDev(int hci_interface);
-  int findRfKill(void);
-  int rfKill(int block);
-  int openBtHci(void);
-  void closeBtHci(void);
-
   void sendDataToController(const uint8_t type, const hidl_vec<uint8_t>& data);
   ::android::sp<BluetoothDeathRecipient> death_recipient_;
   std::function<void(sp<BluetoothDeathRecipient>&)> unlink_cb_;
@@ -69,7 +52,7 @@ class BluetoothHci : public IBluetoothHci {
 
 extern "C" IBluetoothHci* HIDL_FETCH_IBluetoothHci(const char* name);
 
-}  // namespace btlinux
+}  // namespace implementation
 }  // namespace V1_0
 }  // namespace bluetooth
 }  // namespace hardware
