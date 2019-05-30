@@ -37,12 +37,6 @@ typedef uint16_t UINT16;
 #define T2_MAXIMUM_LATENCY                        0x000D
 #define HCIC_PARAM_SIZE_ENH_ACC_ESCO_CONN         63
 
-#define INTEL_VID 0x8087
-#define INTEL_PID_8265 0x0a2b // Windstorm peak
-#define INTEL_PID_3168 0x0aa7 //SandyPeak (SdP)
-#define INTEL_PID_9260 0x0025 // 9160/9260 (also known as ThunderPeak)
-#define INTEL_PID_9560 0x0aaa // 9460/9560 also know as Jefferson Peak (JfP)
-
 #include <errno.h>
 #include <fcntl.h>
 #include <log/log.h>
@@ -144,14 +138,8 @@ size_t H4Protocol::Send(uint8_t type, const uint8_t* data, size_t length) {
     return ret;
 }
 
-bool H4Protocol::IsIntelController(uint16_t vid, uint16_t pid) {
-    if ((vid == INTEL_VID) && ((pid == INTEL_PID_8265) ||
-                                (pid == INTEL_PID_3168)||
-                                (pid == INTEL_PID_9260)||
-                                (pid == INTEL_PID_9560)))
-        return true;
-    else
-        return false;
+bool IsBtController(uint8_t deviceClass, uint8_t deviceSubClass) {
+    return deviceClass == LIBUSB_CLASS_WIRELESS && deviceSubClass == 0x01;
 }
 
 void H4Protocol::GetUsbpath(void) {
@@ -159,7 +147,6 @@ void H4Protocol::GetUsbpath(void) {
     int ret, busnum, devnum;
     struct libusb_device **dev_list = NULL;
     struct libusb_context *ctx;
-    uint16_t vid = 0, pid = 0;
     ALOGD(" Initializing GenericUSB (libusb-1.0)...\n");
     ret = libusb_init(&ctx);
     if (ret < 0) {
@@ -182,12 +169,10 @@ void H4Protocol::GetUsbpath(void) {
             ALOGE("Error getting device descriptor %d ", ret);
             goto exit;
         }
-        vid = descriptor.idVendor;
-        pid = descriptor.idProduct;
-        if (H4Protocol::IsIntelController(vid, pid)) {
+        if (IsBtController(descriptor.bDeviceClass, descriptor.bDeviceSubClass)) {
             snprintf(dev_address, sizeof(dev_address), "/dev/bus/usb/%03d/%03d",
                                                        busnum, devnum);
-            ALOGV("Value of BT device address = %s", dev_address);
+            ALOGD("Value of BT device address = %s", dev_address);
             goto exit;
         }
     }
