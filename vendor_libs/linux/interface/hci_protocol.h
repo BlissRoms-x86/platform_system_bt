@@ -18,51 +18,29 @@
 
 #include <hidl/HidlSupport.h>
 
-#include "async_fd_watcher.h"
 #include "bt_vendor_lib.h"
 #include "hci_internals.h"
-#include "hci_protocol.h"
+#include "hci_packetizer.h"
 
 namespace android {
 namespace hardware {
 namespace bluetooth {
 namespace hci {
 
-class H4Protocol : public HciProtocol {
+using ::android::hardware::hidl_vec;
+using PacketReadCallback = std::function<void(const hidl_vec<uint8_t>&)>;
+
+// Implementation of HCI protocol bits common to different transports
+class HciProtocol {
  public:
-  H4Protocol(int fd, PacketReadCallback event_cb, PacketReadCallback acl_cb,
-             PacketReadCallback sco_cb)
-      : uart_fd_(fd),
-        event_cb_(event_cb),
-        acl_cb_(acl_cb),
-        sco_cb_(sco_cb),
-        hci_packetizer_([this]() { OnPacketReady(); }) {}
+  HciProtocol() = default;
+  virtual ~HciProtocol(){};
 
-  size_t Send(uint8_t type, const uint8_t* data, size_t length);
+  // Protocol-specific implementation of sending packets.
+  virtual size_t Send(uint8_t type, const uint8_t* data, size_t length) = 0;
 
-  void OnPacketReady();
-
-  void OnDataReady(int fd);
-
-  bool IsIntelController(uint16_t vid, uint16_t pid);
-
-  void GetUsbpath(void);
-
-  void SendHandle(void);
-
- private:
-  int uart_fd_;
-
-  uint8_t sco_handle[2];
-
-  char dev_address[32];
-
-  PacketReadCallback event_cb_;
-  PacketReadCallback acl_cb_;
-  PacketReadCallback sco_cb_;
-
-  HciPacketType hci_packet_type_{HCI_PACKET_TYPE_UNKNOWN};
-  hci::HciPacketizer hci_packetizer_;
+ protected:
+  static size_t WriteSafely(int fd, const uint8_t* data, size_t length);
 };
 
 }  // namespace hci

@@ -28,41 +28,26 @@ namespace hardware {
 namespace bluetooth {
 namespace hci {
 
-class H4Protocol : public HciProtocol {
+class MctProtocol : public HciProtocol {
  public:
-  H4Protocol(int fd, PacketReadCallback event_cb, PacketReadCallback acl_cb,
-             PacketReadCallback sco_cb)
-      : uart_fd_(fd),
-        event_cb_(event_cb),
-        acl_cb_(acl_cb),
-        sco_cb_(sco_cb),
-        hci_packetizer_([this]() { OnPacketReady(); }) {}
+  MctProtocol(int* fds, PacketReadCallback event_cb, PacketReadCallback acl_cb);
 
   size_t Send(uint8_t type, const uint8_t* data, size_t length);
 
-  void OnPacketReady();
+  void OnEventPacketReady();
+  void OnAclDataPacketReady();
 
-  void OnDataReady(int fd);
-
-  bool IsIntelController(uint16_t vid, uint16_t pid);
-
-  void GetUsbpath(void);
-
-  void SendHandle(void);
+  void OnEventDataReady(int fd);
+  void OnAclDataReady(int fd);
 
  private:
-  int uart_fd_;
-
-  uint8_t sco_handle[2];
-
-  char dev_address[32];
+  int uart_fds_[CH_MAX];
 
   PacketReadCallback event_cb_;
   PacketReadCallback acl_cb_;
-  PacketReadCallback sco_cb_;
 
-  HciPacketType hci_packet_type_{HCI_PACKET_TYPE_UNKNOWN};
-  hci::HciPacketizer hci_packetizer_;
+  hci::HciPacketizer event_packetizer_;
+  hci::HciPacketizer acl_packetizer_;
 };
 
 }  // namespace hci

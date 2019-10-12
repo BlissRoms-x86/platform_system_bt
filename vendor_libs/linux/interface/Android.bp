@@ -17,27 +17,36 @@ cc_binary {
     name: "android.hardware.bluetooth@1.0-service.btlinux",
     proprietary: true,
     relative_install_path: "hw",
+    include_dirs: [
+        "system/bt/device/include",
+        "system/bt/stack/include"
+    ],
     srcs: [
-        "hci_packetizer.cc",
-        "h4_protocol.cc",
-        "bluetooth_hci.cc",
         "async_fd_watcher.cc",
+        "bluetooth_hci.cc",
+        "bluetooth_address.cc",
+        "vendor_interface.cc",
+        "hci_packetizer.cc",
+        "hci_protocol.cc",
+        "h4_protocol.cc",
+        "mct_protocol.cc",
         "service.cc"
     ],
-    cflags: ["-Wall", "-Werror"],
+    cflags: ["-Wall", "-Werror", "-Wno-unused-result"],
     header_libs: ["libbluetooth_headers"],
     shared_libs: [
         "android.hardware.bluetooth@1.0",
         "libbase",
         "libcutils",
+        "libhwbinder",
         "libhidlbase",
         "libhidltransport",
         "liblog",
         "libutils",
+        "libusb",
     ],
-    conlyflags: [
-        "-std=c99",
+    required: [
+        "libbt-vendor",
     ],
     init_rc: ["android.hardware.bluetooth@1.0-service.btlinux.rc"],
 }
-

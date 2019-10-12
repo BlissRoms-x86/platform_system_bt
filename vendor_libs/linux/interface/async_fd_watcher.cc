@@ -14,21 +14,24 @@
 // limitations under the License.
 //
 
+#define LOG_TAG "android.hardware.bluetooth@1.0-service.btlinux"
+
 #include "async_fd_watcher.h"
 
 #include <algorithm>
 #include <atomic>
 #include <condition_variable>
-#include <log/log.h>
 #include <map>
 #include <mutex>
 #include <thread>
+#include <log/log.h>
 #include <vector>
 #include "fcntl.h"
 #include "sys/select.h"
 #include "unistd.h"
 
 static const int INVALID_FD = -1;
+
 static const int BT_RT_PRIORITY = 1;
 
 namespace android {
@@ -102,6 +105,9 @@ int AsyncFdWatcher::stopThread() {
     timeout_cb_ = nullptr;
   }
 
+  close(notification_listen_fd_);
+  close(notification_write_fd_);
+
   return 0;
 }
 
@@ -114,7 +120,6 @@ int AsyncFdWatcher::notifyThread() {
 }
 
 void AsyncFdWatcher::ThreadRoutine() {
-
   // Make watching thread RT.
   struct sched_param rt_params;
   rt_params.sched_priority = BT_RT_PRIORITY;
