@@ -22,7 +22,7 @@
 
 #include <dlfcn.h>
 #include <fcntl.h>
-
+#if 0
 namespace {
 
 const size_t preamble_size_for_type[] = {
@@ -39,7 +39,7 @@ size_t HciGetPacketLengthForType(HciPacketType type, const uint8_t* preamble) {
 }
 
 }  // namespace
-
+#endif
 namespace android {
 namespace hardware {
 namespace bluetooth {
