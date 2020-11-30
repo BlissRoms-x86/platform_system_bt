@@ -18,6 +18,13 @@
 
 #include <functional>
 #include <list>
+#include <string>
+
+constexpr char kPrivateAddressPrefix[] = "xx:xx:xx:xx";
+#define PRIVATE_ADDRESS(addr)                                            \
+  (addr.ToString()                                                       \
+       .replace(0, strlen(kPrivateAddressPrefix), kPrivateAddressPrefix) \
+       .c_str())
 
 namespace bluetooth {
 namespace shim {
