@@ -1089,13 +1089,21 @@ void btm_read_remote_features_complete(uint8_t* p) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_read_remote_ext_features_complete(uint8_t* p) {
+void btm_read_remote_ext_features_complete(uint8_t* p, uint8_t evt_len) {
   tACL_CONN* p_acl_cb;
   uint8_t page_num, max_page;
   uint16_t handle;
   uint8_t acl_idx;
 
   BTM_TRACE_DEBUG("btm_read_remote_ext_features_complete");
+
+  if (evt_len < HCI_EXT_FEATURES_SUCCESS_EVT_LEN) {
+    android_errorWriteLog(0x534e4554, "141552859");
+    BTM_TRACE_ERROR(
+        "btm_read_remote_ext_features_complete evt length too short. length=%d",
+        evt_len);
+    return;
+  }
 
   ++p;
   STREAM_TO_UINT16(handle, p);
@@ -1114,6 +1122,19 @@ void btm_read_remote_ext_features_complete(uint8_t* p) {
     BTM_TRACE_ERROR("btm_read_remote_ext_features_complete page=%d unknown",
                     max_page);
     return;
+  }
+
+  if (page_num > HCI_EXT_FEATURES_PAGE_MAX) {
+    android_errorWriteLog(0x534e4554, "141552859");
+    BTM_TRACE_ERROR("btm_read_remote_ext_features_complete num_page=%d invalid",
+                    page_num);
+    return;
+  }
+
+  if (page_num > max_page) {
+    BTM_TRACE_WARNING(
+        "btm_read_remote_ext_features_complete num_page=%d, max_page=%d "
+        "invalid", page_num, max_page);
   }
 
   p_acl_cb = &btm_cb.acl_db[acl_idx];
@@ -1595,7 +1616,7 @@ bool BTM_TryAllocateSCN(uint8_t scn) {
   /* Make sure we don't exceed max port range.
    * Stack reserves scn 1 for HFP, HSP we still do the correct way.
    */
-  if ((scn >= BTM_MAX_SCN) || (scn == 1)) return false;
+  if ((scn >= BTM_MAX_SCN) || (scn == 1) || (scn == 0)) return false;
 
   /* check if this port is available */
   if (!btm_cb.btm_scn[scn - 1]) {
@@ -1617,7 +1638,7 @@ bool BTM_TryAllocateSCN(uint8_t scn) {
  ******************************************************************************/
 bool BTM_FreeSCN(uint8_t scn) {
   BTM_TRACE_DEBUG("BTM_FreeSCN ");
-  if (scn <= BTM_MAX_SCN) {
+  if (scn <= BTM_MAX_SCN && scn > 0) {
     btm_cb.btm_scn[scn - 1] = false;
     return (true);
   } else {
