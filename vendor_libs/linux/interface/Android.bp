@@ -1,5 +1,5 @@
 //
-// Copyright 2017 The Android Open Source Project
+// Copyright (C) 2016 The Android Open Source Project
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ cc_binary {
         "mct_protocol.cc",
         "service.cc"
     ],
-    cflags: ["-Wall", "-Werror", "-Wno-unused-result"],
+        cflags: ["-Wall", "-Werror", "-Wno-unused-result"],
     header_libs: ["libbluetooth_headers"],
     shared_libs: [
         "android.hardware.bluetooth@1.0",
