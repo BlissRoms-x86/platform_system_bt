@@ -80,10 +80,15 @@ using bluetooth::Uuid;
 #define BTIF_STORAGE_KEY_ADAPTER_SCANMODE "ScanMode"
 #define BTIF_STORAGE_KEY_LOCAL_IO_CAPS "LocalIOCaps"
 #define BTIF_STORAGE_KEY_LOCAL_IO_CAPS_BLE "LocalIOCapsBLE"
+#define BTIF_STORAGE_KEY_MAX_SESSION_KEY_SIZE "MaxSessionKeySize"
 #define BTIF_STORAGE_KEY_ADAPTER_DISC_TIMEOUT "DiscoveryTimeout"
 #define BTIF_STORAGE_KEY_GATT_CLIENT_SUPPORTED "GattClientSupportedFeatures"
 #define BTIF_STORAGE_KEY_GATT_CLIENT_DB_HASH "GattClientDatabaseHash"
 #define BTIF_STORAGE_KEY_GATT_SERVER_SUPPORTED "GattServerSupportedFeatures"
+#define BTIF_STORAGE_KEY_SECURE_CONNECTIONS_SUPPORTED \
+  "SecureConnectionsSupported"
+
+#define BTIF_STORAGE_KEY_HID_RECONNECT_ALLOWED "HidReConnectAllowed"
 
 /* This is a local property to add a device found */
 #define BT_PROPERTY_REMOTE_DEVICE_TIMESTAMP 0xFF
@@ -265,7 +270,14 @@ static int prop2cfg(const RawAddress* remote_bd_addr, bt_property_t* prop) {
       btif_config_set_int(bdstr, BT_CONFIG_KEY_REMOTE_VER_SUBVER,
                           info->sub_ver);
     } break;
-
+    case BT_PROPERTY_REMOTE_SECURE_CONNECTIONS_SUPPORTED:
+      btif_config_set_int(bdstr, BTIF_STORAGE_KEY_SECURE_CONNECTIONS_SUPPORTED,
+                          *(uint8_t*)prop->val);
+      break;
+    case BT_PROPERTY_REMOTE_MAX_SESSION_KEY_SIZE:
+      btif_config_set_int(bdstr, BTIF_STORAGE_KEY_MAX_SESSION_KEY_SIZE,
+                          *(uint8_t*)prop->val);
+      break;
     default:
       BTIF_TRACE_ERROR("Unknown prop type:%d", prop->type);
       return false;
@@ -388,6 +400,25 @@ static int cfg2prop(const RawAddress* remote_bd_addr, bt_property_t* prop) {
         if (ret)
           ret = btif_config_get_int(bdstr, BT_CONFIG_KEY_REMOTE_VER_SUBVER,
                                     &info->sub_ver);
+      }
+    } break;
+    case BT_PROPERTY_REMOTE_SECURE_CONNECTIONS_SUPPORTED: {
+      int val;
+
+      if (prop->len >= (int)sizeof(uint8_t)) {
+        ret = btif_config_get_int(
+            bdstr, BTIF_STORAGE_KEY_SECURE_CONNECTIONS_SUPPORTED, &val);
+        *(uint8_t*)prop->val = (uint8_t)val;
+      }
+    } break;
+
+    case BT_PROPERTY_REMOTE_MAX_SESSION_KEY_SIZE: {
+      int val;
+
+      if (prop->len >= (int)sizeof(uint8_t)) {
+        ret = btif_config_get_int(bdstr, BTIF_STORAGE_KEY_MAX_SESSION_KEY_SIZE,
+                                  &val);
+        *(uint8_t*)prop->val = (uint8_t)val;
       }
     } break;
 
@@ -1319,6 +1350,50 @@ bt_status_t btif_storage_get_remote_addr_type(const RawAddress* remote_bd_addr,
   *addr_type = static_cast<tBLE_ADDR_TYPE>(val);
   return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
 }
+
+/*******************************************************************************
+ *
+ * Function         btif_storage_set_hid_connection_policy
+ *
+ * Description      Stores connection policy info in nvram
+ *
+ * Returns          BT_STATUS_SUCCESS
+ *
+ ******************************************************************************/
+bt_status_t btif_storage_set_hid_connection_policy(const RawAddress& addr,
+                                                   bool reconnect_allowed) {
+  std::string bdstr = addr.ToString();
+
+  if (btif_config_set_int(bdstr, BTIF_STORAGE_KEY_HID_RECONNECT_ALLOWED,
+                          reconnect_allowed)) {
+    return BT_STATUS_SUCCESS;
+  } else {
+    return BT_STATUS_FAIL;
+  }
+}
+
+/*******************************************************************************
+ *
+ * Function         btif_storage_get_hid_connection_policy
+ *
+ * Description      get connection policy info from nvram
+ *
+ * Returns          BT_STATUS_SUCCESS
+ *
+ ******************************************************************************/
+bt_status_t btif_storage_get_hid_connection_policy(const RawAddress& addr,
+                                                   bool* reconnect_allowed) {
+  std::string bdstr = addr.ToString();
+
+  // For backward compatibility, assume that the reconnection is allowed in the
+  // absence of the key
+  int value = 1;
+  btif_config_get_int(bdstr, BTIF_STORAGE_KEY_HID_RECONNECT_ALLOWED, &value);
+  *reconnect_allowed = (value != 0);
+
+  return BT_STATUS_SUCCESS;
+}
+
 /*******************************************************************************
  *
  * Function         btif_storage_add_hid_device_info
@@ -1414,8 +1489,11 @@ bt_status_t btif_storage_load_bonded_hid_info(void) {
                           (uint8_t*)dscp_info.descriptor.dsc_list, &len);
     }
 
+    bool reconnect_allowed = false;
+    btif_storage_get_hid_connection_policy(bd_addr, &reconnect_allowed);
+
     // add extracted information to BTA HH
-    if (btif_hh_add_added_dev(bd_addr, attr_mask)) {
+    if (btif_hh_add_added_dev(bd_addr, attr_mask, reconnect_allowed)) {
       BTA_HhAddDev(bd_addr, attr_mask, sub_class, app_id, dscp_info);
     }
   }
@@ -1447,6 +1525,7 @@ bt_status_t btif_storage_remove_hid_info(const RawAddress& remote_bd_addr) {
   btif_config_remove(bdstr, "HidSSRMaxLatency");
   btif_config_remove(bdstr, "HidSSRMinTimeout");
   btif_config_remove(bdstr, "HidDescriptor");
+  btif_config_remove(bdstr, BTIF_STORAGE_KEY_HID_RECONNECT_ALLOWED);
   btif_config_save();
   return BT_STATUS_SUCCESS;
 }
