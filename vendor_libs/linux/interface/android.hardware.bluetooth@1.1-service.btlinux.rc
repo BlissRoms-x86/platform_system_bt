@@ -1,6 +1,6 @@
 service btlinux-1.1 /vendor/bin/hw/android.hardware.bluetooth@1.1-service.btlinux
     class hal
     user bluetooth
-    group bluetooth net_admin net_bt_admin
+    group bluetooth net_admin net_bt_admin uhid
     capabilities NET_ADMIN
     disabled
